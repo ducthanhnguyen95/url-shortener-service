@@ -1,0 +1,20 @@
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: app-secrets
+type: Opaque
+stringData:
+
+  mysql-root-password: "rootpassword"
+  mysql-user-password: "mypassword"
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+data:
+
+  mysql-database: "url_shortener_db"
+  mysql-user: "myuser"

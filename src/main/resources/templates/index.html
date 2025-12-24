@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener - Zookeeper Edition</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+        .card {
+            border: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 500px;
+        }
+        .result-box {
+            display: none; /* Mặc định ẩn */
+            background-color: #e9ecef;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card p-4">
+    <h3 class="text-center mb-4 text-primary fw-bold">🚀 URL Shortener</h3>
+    <p class="text-muted text-center mb-4">Nhập link dài của bạn để rút gọn (Powered by Zookeeper & Redis)</p>
+
+    <form id="shortenForm">
+        <div class="mb-3">
+            <input type="url" class="form-control form-control-lg" id="longUrl"
+                   placeholder="Dán link của bạn vào đây (https://...)" required>
+        </div>
+        <button type="submit" class="btn btn-primary btn-lg w-100" id="btnSubmit">Rút gọn ngay</button>
+    </form>
+
+    <div id="resultArea" class="result-box">
+        <p class="mb-2 text-muted">Link rút gọn của bạn:</p>
+        <div class="input-group">
+            <input type="text" class="form-control" id="shortUrlInput" readonly>
+            <button class="btn btn-outline-secondary" type="button" onclick="copyToClipboard()">Copy</button>
+        </div>
+        <div class="mt-2">
+            <a href="#" id="openLinkBtn" target="_blank" class="text-decoration-none fw-bold">Mở Link 🔗</a>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('shortenForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const longUrl = document.getElementById('longUrl').value;
+        const btnSubmit = document.getElementById('btnSubmit');
+        const resultArea = document.getElementById('resultArea');
+        const shortUrlInput = document.getElementById('shortUrlInput');
+        const openLinkBtn = document.getElementById('openLinkBtn');
+
+        btnSubmit.disabled = true;
+        btnSubmit.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Đang xử lý...';
+
+        try {
+            const response = await fetch('/api/shorten', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ longUrl: longUrl })
+            });
+
+            if (!response.ok) throw new Error('Có lỗi xảy ra!');
+
+            const data = await response.json();
+
+            shortUrlInput.value = data.shortUrl;
+            openLinkBtn.href = data.shortUrl;
+            resultArea.style.display = 'block';
+
+        } catch (error) {
+            alert("Lỗi: " + error.message);
+        } finally {
+            btnSubmit.disabled = false;
+            btnSubmit.innerHTML = 'Rút gọn ngay';
+        }
+    });
+
+    function copyToClipboard() {
+        const copyText = document.getElementById("shortUrlInput");
+        copyText.select();
+        copyText.setSelectionRange(0, 99999);
+        navigator.clipboard.writeText(copyText.value);
+        alert("Đã copy: " + copyText.value);
+    }
+</script>
+
+</body>
+</html>
